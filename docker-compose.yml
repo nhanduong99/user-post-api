@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # Laravel Backend
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: limix-backend
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www/html
+      - /var/www/html/vendor
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-limix}
+      - DB_USERNAME=${DB_USERNAME:-limix}
+      - DB_PASSWORD=${DB_PASSWORD:-limix_password}
+    networks:
+      - limix-network
+    depends_on:
+      - db
+
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: limix-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-limix}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-limix_password}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-limix_password}
+      MYSQL_USER: ${DB_USERNAME:-limix}
+    volumes:
+      - dbdata:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - limix-network
+
+networks:
+  limix-network:
+    driver: bridge
+
+volumes:
+  dbdata:
+    driver: local
